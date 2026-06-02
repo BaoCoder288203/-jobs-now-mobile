@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, TextInput, ActivityIndicator, Pressable, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AppText } from '../../components/AppText';
 import { PrimaryButton } from '../../components/PrimaryButton';
-import { colors, radius, shadows, spacing, fontFamilies } from '../../theme';
+import {colors, radius, shadows, spacing, fontFamilies, zIndex } from '../../theme';
+
 import { authService } from '../../services/api/authService';
 import type { AuthStackParamList } from '../../navigation/AuthStack';
 
@@ -17,6 +19,7 @@ type RegisterStep = 'form' | 'verify-otp';
 
 export function RegisterScreen() {
   const navigation = useNavigation<NavigationProp>();
+  const insets = useSafeAreaInsets();
   const route = useRoute<RegisterRoute>();
   const email = route.params.email;
 
@@ -98,9 +101,18 @@ export function RegisterScreen() {
   };
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 0}
+    >
       <LinearGradient colors={[colors.background, colors.surfaceAlt]} style={styles.gradient}>
-        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+        >
           <Pressable onPress={() => navigation.goBack()} style={styles.backBtn}>
             <Feather name="arrow-left" color={colors.textPrimary} size={24} />
           </Pressable>
@@ -273,14 +285,20 @@ export function RegisterScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   gradient: { flex: 1 },
-  scroll: { flexGrow: 1, paddingHorizontal: spacing.lg },
+  scroll: {
+    flexGrow: 1,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing['3xl'],
+  },
   backBtn: {
+    zIndex: zIndex.overlayHeader,
+    elevation: zIndex.overlayHeader,
     width: 44, height: 44, borderRadius: 22,
     backgroundColor: colors.surface,
     alignItems: 'center', justifyContent: 'center',
-    ...shadows.sm, marginTop: 60, marginBottom: spacing.xl,
+    ...shadows.sm, marginTop: spacing.xl, marginBottom: spacing.xl,
   },
-  centeredContent: { flex: 1, justifyContent: 'center', paddingBottom: 60 },
+  centeredContent: { paddingVertical: spacing.lg },
   header: { alignItems: 'center', marginBottom: spacing.xl },
   title: { fontSize: 32, marginBottom: 8 },
   subtitle: { textAlign: 'center' },
